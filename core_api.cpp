@@ -194,13 +194,6 @@ struct CPU_BlockedMT {
         }
         return instruction_counter;
     }
-
-    void getRegisterFile(tcontext* context, int threadid) const {
-        for (int reg_idx = 0; reg_idx < REGS_COUNT; ++reg_idx) {
-            context->reg[reg_idx] = threads_array[threadid].register_file->reg[reg_idx];
-        }
-    }
-
 };
 
 struct CPU_FineGrainedMT {
@@ -300,12 +293,6 @@ struct CPU_FineGrainedMT {
         }
         return instruction_counter;
     }
-
-    void getRegisterFile(tcontext* context, int threadid) const {
-        for (int reg_idx = 0; reg_idx < REGS_COUNT; ++reg_idx) {
-            context->reg[reg_idx] = threads_array[threadid].register_file->reg[reg_idx];
-        }
-    }
 };
 
 CPU_BlockedMT* cpuBlockedMt;
@@ -334,9 +321,13 @@ double CORE_FinegrainedMT_CPI(){
 }
 
 void CORE_BlockedMT_CTX(tcontext* context, int threadid) {
-    cpuBlockedMt->getRegisterFile(context, threadid);
+    for (int register_idx = 0; register_idx < REGS_COUNT; ++register_idx) {
+        context[threadid].reg[register_idx] = cpuBlockedMt->threads_array[threadid].register_file->reg[register_idx];
+    }
 }
 
 void CORE_FinegrainedMT_CTX(tcontext* context, int threadid) {
-    cpuFineGrainedMt->getRegisterFile(context, threadid);
+    for (int register_idx = 0; register_idx < REGS_COUNT; ++register_idx) {
+        context[threadid].reg[register_idx] = cpuBlockedMt->threads_array[threadid].register_file->reg[register_idx];
+    }
 }
